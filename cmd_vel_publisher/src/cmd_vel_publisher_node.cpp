@@ -1,0 +1,133 @@
+/*
+ * cmd_vel_publisher_node.cpp
+ *
+ *  USO: se ejecuta con "rosrun cmd_vel_publisher cmd_vel_publisher_node"    
+ *  COMANDOS:
+ *        - a: gira a la izquierda
+ *        - d: gira a la derecha
+ *        - s: se queda quieto
+ *	  - r: marcha atras 
+ *        - w: va para adelante
+ *        - q: cierra la aplicacion 
+ *
+ *      Author: Maria Valero y Ernesto
+ */
+
+#include <ros/ros.h>
+#include <geometry_msgs/Twist.h>
+#include <unistd.h>
+#include <termios.h>
+
+char getch() {
+        char buf = 0;
+        struct termios old = {0};
+        if (tcgetattr(0, &old) < 0)
+                perror("tcsetattr()");
+        old.c_lflag &= ~ICANON;
+        old.c_lflag &= ~ECHO;
+        old.c_cc[VMIN] = 1;
+        old.c_cc[VTIME] = 0;
+        if (tcsetattr(0, TCSANOW, &old) < 0)
+                perror("tcsetattr ICANON");
+        if (read(0, &buf, 1) < 0)
+                perror ("read()");
+        old.c_lflag |= ICANON;
+        old.c_lflag |= ECHO;
+        if (tcsetattr(0, TCSADRAIN, &old) < 0)
+                perror ("tcsetattr ~ICANON");
+        return (buf);
+}
+
+
+// using namespace std;
+int
+main (int argc, char** argv)
+{
+  char c;
+  ros::init (argc, argv, "cmd_vel_publisher");
+  ros::NodeHandle nh;
+
+  ros::Publisher pub = nh.advertise<geometry_msgs::Twist> ("/RosAria/cmd_vel", 1);
+
+  ros::Rate rate (200);
+  int cnt = 0;
+  while (true)
+    {
+      char check = 'o';
+      check = getch();
+      if (check == 'w')
+      {
+           geometry_msgs::Twist cmd_vel;
+
+           cmd_vel.linear.x = 0.15;
+           cmd_vel.linear.y = 0.0;
+           cmd_vel.angular.z = 0.0;
+
+           pub.publish (cmd_vel);
+           ROS_INFO("cmd_vel [v_x, v_y, w]:[%f, %f, %f]", cmd_vel.linear.x,
+	       cmd_vel.linear.y, cmd_vel.angular.z);
+           cnt++;
+       } else if ( check == 's') 
+       {
+           geometry_msgs::Twist cmd_vel;
+
+           cmd_vel.linear.x = 0.0;
+           cmd_vel.linear.y = 0.0;
+           cmd_vel.angular.z = 0.0;
+
+           pub.publish (cmd_vel);
+           ROS_INFO("cmd_vel [v_x, v_y, w]:[%f, %f, %f]", cmd_vel.linear.x,
+               cmd_vel.linear.y, cmd_vel.angular.z);
+           cnt++;
+
+         
+       } else if (check=='a')
+       {
+           geometry_msgs::Twist cmd_vel;
+
+           cmd_vel.linear.x = 0.0;
+           cmd_vel.linear.y = 0.0;
+           cmd_vel.angular.z = -0.2;
+
+           pub.publish (cmd_vel);
+           ROS_INFO("cmd_vel [v_x, v_y, w]:[%f, %f, %f]", cmd_vel.linear.x,
+               cmd_vel.linear.y, cmd_vel.angular.z);
+           cnt++;
+ 
+       } else if (check=='d')
+       {
+           geometry_msgs::Twist cmd_vel;
+
+           cmd_vel.linear.x = 0.0;
+           cmd_vel.linear.y = 0.0;
+           cmd_vel.angular.z = 0.2;
+
+           pub.publish (cmd_vel);
+           ROS_INFO("cmd_vel [v_x, v_y, w]:[%f, %f, %f]", cmd_vel.linear.x,
+               cmd_vel.linear.y, cmd_vel.angular.z);
+           cnt++;
+       } else if (check=='r')
+       {
+           geometry_msgs::Twist cmd_vel;
+
+           cmd_vel.linear.x = -0.1;
+           cmd_vel.linear.y = 0.0;
+           cmd_vel.angular.z = 0.0;
+
+           pub.publish (cmd_vel);
+           ROS_INFO("cmd_vel [v_x, v_y, w]:[%f, %f, %f]", cmd_vel.linear.x,
+               cmd_vel.linear.y, cmd_vel.angular.z);
+           cnt++;
+
+       } else if (check == 'q')
+       {
+	    break;
+       }
+      
+       check = 'o';
+       rate.sleep (); 
+   }
+
+  return 0;
+}
+
