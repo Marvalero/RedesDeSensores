@@ -87,7 +87,7 @@ main (int argc, char** argv)
 
            cmd_vel.linear.x = 0.0;
            cmd_vel.linear.y = 0.0;
-           cmd_vel.angular.z = -0.2;
+           cmd_vel.angular.z = 0.2;
 
            pub.publish (cmd_vel);
            ROS_INFO("cmd_vel [v_x, v_y, w]:[%f, %f, %f]", cmd_vel.linear.x,
@@ -100,7 +100,7 @@ main (int argc, char** argv)
 
            cmd_vel.linear.x = 0.0;
            cmd_vel.linear.y = 0.0;
-           cmd_vel.angular.z = 0.2;
+           cmd_vel.angular.z = -0.2;
 
            pub.publish (cmd_vel);
            ROS_INFO("cmd_vel [v_x, v_y, w]:[%f, %f, %f]", cmd_vel.linear.x,
