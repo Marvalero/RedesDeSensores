@@ -27,9 +27,10 @@ public class TestSerial implements MessageListener{
 	public static final int REQUEST_TYPE = 5;					
 	public static final int RESPONSE_TYPE = 6;					
 	public static final int TRIGGER_TYPE = 7;
+	public static final int REJECT_TYPE = 8;
 	
-	public static final double D1_TEMP = -40.1;
-	public static final double D2_TEMP = 0.04;
+	public static final double D1_TEMP = -39.6;
+	public static final double D2_TEMP = 0.01;
 	
 	
 	private LinkedList motas = null;
@@ -112,76 +113,55 @@ public class TestSerial implements MessageListener{
 				switch(c){
 					
 					case '0':	// Sincronización de nodos
-						
+							// Creamos un mensaje de sincronización
 						InfoMsg syncMsg = new InfoMsg();
 						
+						// Establecemos que el nodo origen es el maestro
 						syncMsg.set_SourceNode(0x7);
+						// Establecemos que le nodo destino es todo el mundo
 						syncMsg.set_DestinationNode(MoteIF.TOS_BCAST_ADDR);
-						syncMsg.set_TOM(0x01);
+						// El tipo de mensaje es de sincronización
+						syncMsg.set_TOM(SYNC_TYPE);
 						
+						// Enviamos el mensaje
 						moteIF.send(MoteIF.TOS_BCAST_ADDR, syncMsg);
-						//moteIF.send(1, syncMsg);
 						
 						System.out.println("Se ha enviado un mensaje de sincronización a todos los nodos");
 						
 						break;
 
-					case '1':	// Luminosidad
+					case '1':	// Ajuste TDMA
 					
 						System.out.println("Ajuste de trata TDMA\nPor favor introduce la longitud de la trama (segundos = " + TRAMA_LENGTH/1000 +"):");
 						
-						
 						try{
-						TRAMA_LENGTH = sc.nextInt()*1000;
-					}catch(Exception e){
-						TRAMA_LENGTH = 5000;
-					}
-						
-						System.out.println("Insertar número de intervalos (nodos = " + SUB_TRAMAS + ") : ");
-						try{
-							
-						SUB_TRAMAS = sc.nextInt();
-					}catch(Exception e){
-						SUB_TRAMAS = 10;
+							// Número de segundos asignados
+							TRAMA_LENGTH = sc.nextInt()*1000;
+						}catch(Exception e){
+							System.err.println("Se ha producido un error asignación por defecto");
+							// En caso de error dejamos la trama por defecto
+							TRAMA_LENGTH = 5000;
 						}
-		/*				System.out.println("Solicitando medida de luminosidad...");
-					
-						for(int i = 0; i < motas.size(); i++){
-			
-							InfoMsg tempRequest = new InfoMsg();
 						
-							Mote m = (Mote)motas.get(i);
-							tempRequest.setElement_datos(0, 2);
-							tempRequest.set_SourceNode(7);
-							tempRequest.set_TOM(REQUEST_TYPE);
-							tempRequest.set_DestinationNode(m.getID());
+						System.out.println("Insertar número de intervalos (slots = " + SUB_TRAMAS + ") : ");
 						
-							System.out.println("Enviando peticion al nodo " + m.getID());
-							
-							moteIF.send(m.getID(), tempRequest);
+						try{
+							// Número de slots asignados
+							SUB_TRAMAS = sc.nextInt();
+						}catch(Exception e){
+							System.err.println("Se ha producido un error asignación por defecto");
+							// En caso de error dejamos los slots por defecto
+							SUB_TRAMAS = 10;
+						}
 						
-						}*/
+						System.out.println("Resumen:\n"
+										+ "\tTiempo TDMA : " + TRAMA_LENGTH + " ms" 
+										+ "\n\tSlots TDMA : " + SUB_TRAMAS 
+										+ "\n\tIntervalo TDMA : " + TRAMA_LENGTH/SUB_TRAMAS +" ms ");
+						
 					break;
-					case '2': 	// Humedad
-					
-					/*System.out.println("Solicitando medida de humedad...");
-			
-						for(int i = 0; i < motas.size(); i++){
-			
-						InfoMsg tempRequest = new InfoMsg();
-						
-							Mote m = (Mote)motas.get(i);
-							tempRequest.setElement_datos(0, 0);
-							tempRequest.set_SourceNode(7);
-							tempRequest.set_TOM(REQUEST_TYPE);
-							tempRequest.set_DestinationNode(m.getID());
-						
-							System.out.println("Enviando peticion al nodo " + m.getID());
-							
-							moteIF.send(m.getID(), tempRequest);
-						
-						}*/
-						
+					case '2': 	// Polling
+								
 						System.out.println("Por favor, introduce el tiempo de polling (segundos = " + TRAMA_LENGTH/1000+ ")");
 						try{
 						POLLING = sc.nextInt();
@@ -210,22 +190,16 @@ public class TestSerial implements MessageListener{
 					break;
 					case '4':
 						System.out.println("Recopilando datos");
-			
-						//for(int i = 0; i < motas.size(); i++){
-			
+		
 							InfoMsg getResultsManually = new InfoMsg();
 						
-							//Mote m = (Mote)motas.get(i);
 							getResultsManually.setElement_datos(0, 1);
 							getResultsManually.set_SourceNode(7);
 							getResultsManually.set_TOM(TRIGGER_TYPE);
 							getResultsManually.set_DestinationNode(MoteIF.TOS_BCAST_ADDR);
 						
-							//System.out.println("Enviando peticion al nodo " + m.getID());
-							
 							moteIF.send(MoteIF.TOS_BCAST_ADDR, getResultsManually);
 						
-						//}
 					break;
 					case '5':
 						if(POLLING_ENABLE == false){
@@ -260,125 +234,205 @@ public class TestSerial implements MessageListener{
   	public void messageReceived(int to, Message message) {
 		
 		System.out.println("He recibido un mensaje nuevo.");
+		
 		SerialPacket sp = message.getSerialPacket();
+		// Obtenemos el nodo origen
 		int SourceNode = sp.get_header_src();
+		// Obtenemos el nodo destino
 		int DestinationNode = sp.get_header_dest();
 	
-		
+		// Obtenemos el mensaje recibido
 		InfoMsg msgRcv = (InfoMsg)message;
+		// Creamos un mensaje de respuesta
 		InfoMsg msgRsp = new InfoMsg();
 
+		// Comprobamos el tipo de mensaje ({T}ype {O}f {M}essage)
 		switch(msgRcv.get_TOM()){
+			// En el caso de un mensaje Hello
 			case HELLO_TYPE:
+			
 				System.out.println("Recibido mensaje Hello");
-				
-				Mote mota = new Mote(SourceNode);
-	
-				msgRsp.set_DestinationNode(SourceNode);
-				msgRsp.set_SourceNode(0x7);
-				msgRsp.set_TOM(HANDSHAKE_TYPE);
-				
-				if(motas.size()>0){
-				
-					for(int i = 0; i < motas.size(); i++){
-						Mote m = (Mote)motas.get(i);
-						System.out.println("ID Obtenido : " + SourceNode);
-						System.out.println("ID Almacenado : " + m.getID());
-						if(m.getID() == SourceNode && m.getStatus() == Mote.SYNC_STATUS){
-								msgRsp.setElement_datos(0, m.getInterval());
-								msgRsp.setElement_datos(1, TRAMA_LENGTH/SUB_TRAMAS);
-								try{
-									moteIF.send(m.getID(), msgRsp);
-								}catch(Exception e){
-									System.out.println("Hubo un problema al transmitir el mensaje");
-								}
-								
-								return;
-						}else if(m.getID() == SourceNode && m.getStatus() != Mote.SYNC_STATUS){
-								m.setStatus(Mote.SYNC_STATUS);
-								msgRsp.setElement_datos(0, m.getInterval());
-								msgRsp.setElement_datos(1, TRAMA_LENGTH/SUB_TRAMAS);
-								
-								try{
-									moteIF.send(m.getID(), msgRsp);
-								}catch(Exception e){
-									System.out.println("Hubo un problema al transmitir el mensaje");
-								}
-								
-								return;
-						}		
-				
+				if(DestinationNode == 0){
+					
+					// Creamos un mensaje de sincronización
+					InfoMsg syncMsg = new InfoMsg();
+						
+					// Establecemos que el nodo origen es el maestro
+					syncMsg.set_SourceNode(0x7);
+					// Establecemos que le nodo destino es todo el mundo
+					syncMsg.set_DestinationNode(SourceNode);
+					// El tipo de mensaje es de sincronización
+					syncMsg.set_TOM(SYNC_TYPE);
+						
+					try{
+						// Enviamos el mensaje
+						moteIF.send(MoteIF.TOS_BCAST_ADDR, syncMsg);
+					}catch(Exception e){
+						System.err.println("Error al enviar el mensaje de sincronización");
 					}
-				
-				mota.setInterval(interval++);
-				mota.setStatus(Mote.SYNC_STATUS);
-				motas.add(mota);
-				
-				msgRsp.setElement_datos(0, mota.getInterval());
-				msgRsp.setElement_datos(1, TRAMA_LENGTH/SUB_TRAMAS);
-				
-				try{
-					moteIF.send(mota.getID(), msgRsp);
-				}catch(Exception e){
-					System.out.println("Hubo un problema al transmitir el mensaje");
-				}
-				
-				
-			}else{
-				mota.setInterval(interval++);
-				mota.setStatus(Mote.SYNC_STATUS);
-				motas.add(mota);
-			}	
+						
+					System.out.println("Se ha enviado un mensaje de sincronización al nodo : " + SourceNode);
+						
+				}else if(interval <= SUB_TRAMAS){
+					// Creamos una nueva mota con ID del nodo origen
+					Mote mota = new Mote(SourceNode);
+		
+					// Establecemos el destino que será el del nodo origen
+					msgRsp.set_DestinationNode(mota.getID());
+					// El origen será el maestro
+					msgRsp.set_SourceNode(0x7);
+					// El tipo de mensaje que se enviará es del tipo Handshake
+					msgRsp.set_TOM(HANDSHAKE_TYPE);
+					
+					// Comprobamos si tenemos un número de motas disponibles en caso de que sea cierto
+					if(motas.size()>0){
+						// Recorremos el vector de motas
+						for(int i = 0; i < motas.size(); i++){
+							// Obtenemos la mota
+							Mote m = (Mote)motas.get(i);
+							
+							//System.out.println("ID Obtenido : " + SourceNode);
+							
+							//System.out.println("ID Almacenado : " + m.getID());
+							
+							// Si obtenido el ID del nodo coincide con el origen obtenido en el mensaje y el estado es sincronizando
+							if(m.getID() == SourceNode && m.getStatus() == Mote.SYNC_STATUS){
+									// En el mensaje de respuesta el primer dato es el intervalo de la TDMA
+									msgRsp.setElement_datos(0, m.getInterval());
+									// En el mensaje de respuesta el segundo dato es el tiempo del slot de trama TDMA
+									msgRsp.setElement_datos(1, TRAMA_LENGTH/SUB_TRAMAS);
+									
+									// Intentamos transmitir el mensaje
+									try{
+										moteIF.send(m.getID(), msgRsp);
+									}catch(Exception e){
+										// En caso de error lo notificamos al usuario
+										System.err.println("Hubo un problema al transmitir el mensaje");
+									}
+									return;
+							// Si obtenido el ID del nodo coincide con el origen obtenido en el mensaje y el estado es distinto de sincronizando
+							}else if(m.getID() == SourceNode && m.getStatus() != Mote.SYNC_STATUS){
+									// El estado del nodo lo cambiamos a sincronizando
+									m.setStatus(Mote.SYNC_STATUS);
 
+									// En el mensaje de respuesta el primer dato es el intervalo de la TDMA
+									msgRsp.setElement_datos(0, m.getInterval());
+									// En el mensaje de respuesta el segundo dato es el tiempo del slot de trama TDMA
+									msgRsp.setElement_datos(1, TRAMA_LENGTH/SUB_TRAMAS);
+									
+									// Intentamos transmitir el mensaje
+									try{
+										moteIF.send(m.getID(), msgRsp);
+									}catch(Exception e){
+										System.err.println("Hubo un problema al transmitir el mensaje");
+									}
+									
+									return;
+							}		
+					
+						}// Fin de bucle for
+					// En caso de que no exista en el vector le agregamos un nuevo intervalo
+					mota.setInterval(interval++);
+					// Le asignamos el estado de sincronizando
+					mota.setStatus(Mote.SYNC_STATUS);
+					// Y la añadimos al vector de motas
+					motas.add(mota);
+					
+					// En el mensaje de respuesta damos el intervalo para dicha mota
+					msgRsp.setElement_datos(0, mota.getInterval());
+					// Y le asignamos el slot de trama TDMA
+					msgRsp.setElement_datos(1, TRAMA_LENGTH/SUB_TRAMAS);
+					
+					// Intentamos enviar el mensaje
+					try{
+						moteIF.send(mota.getID(), msgRsp);
+					}catch(Exception e){	// En caso de error
+						System.err.println("Hubo un problema al transmitir el mensaje");
+					}
+					
+				// Si no tenemos motas dentro del vector es evidente que debemos agregarla
+				}else{
+						// Asignamos un nuevo intervalo
+						mota.setInterval(interval++);
+						// Establecemos el estado a sincronizando
+						mota.setStatus(Mote.SYNC_STATUS);
+						// Añadimos la mota al vector
+						motas.add(mota);
+						System.out.println("Se ha añadido la mota con ID : " + mota.getID());
+				}// Fin comprobación número de motas en el vector	
+			}else{
+				// En caso de que tengamos todos los slots ocupados enviamos un mensaje de rechazo
+				msgRsp.set_TOM(REJECT_TYPE);
+				
+				// Intentamos enviar el mensaje
+				try{
+					moteIF.send(SourceNode, msgRsp);
+				}catch(Exception e){
+					System.err.println("Hubo un problema al enviar el mensaje");
+				}
+			}// Fin de comprobación de motas en SUBT_RAMAS
 			break;
-			case ACK_TYPE:
+			case ACK_TYPE:	// Mensaje del tipo ACK
+				
 				System.out.println("Recibido mensaje Ack");
 				
+				// Recorremos el listado de nodos que tenenmos disponibles
 				for(int i = 0; i < motas.size(); i++){
+						// Obtenemos el nodo
 						Mote m = (Mote)motas.get(i);
 						
+						// Si el ID del nodo coincide con el recibido por el mensaje
 						if(m.getID() == SourceNode){
-							m.setStatus(Mote.WAIT_STATUS);
+							// Si el estado es de sincronización
+							if(m.getStatus() == Mote.SYNC_STATUS){
+								// Pasamos a un estado de espera
+								m.setStatus(Mote.WAIT_STATUS);
+								// Si por el contrario es un estado de espera
+							}else if(m.getStatus() == Mote.WAIT_STATUS){
+								// Pasamos a un estado de preparado
+								m.setStatus(Mote.READY_STATUS);
+							}
+							// Establecemos el nodo destino como el ID de la mota obtenida
 							msgRsp.set_DestinationNode(m.getID());
+							// Establecemos el nodo origen como el asignado por el maestro
 							msgRsp.set_SourceNode(0x7);
+							// El tipo de mensaje es ACK
 							msgRsp.set_TOM(ACK_TYPE);
 				
+							// Intentamos enviar el ACK
 							try{
 								moteIF.send(m.getID(), msgRsp);
 								System.out.println("Enviado Ack a " + m.getID());
 							}catch(Exception e){
-								System.out.println("Hubo un problema al transmitir el mensaje");
+								System.err.println("Hubo un problema al transmitir el mensaje");
 							}
 						}
 				}
 				
 			break;
-			case SYNC_TYPE:
-				System.out.println("Recibido mensaje Sync");
-			break;
-			case HANDSHAKE_TYPE:
-				System.out.println("Recibido mensaje Handshake");
-			break;
-			case REQUEST_TYPE:
-				System.out.println("Recibido mensaje Request");
-			break;
-			case RESPONSE_TYPE:
+			case RESPONSE_TYPE:	// Mensaje Response
 				System.out.println("Recibido mensaje Response");
-				
+				System.out.println("Nodo : " + SourceNode);
+				// Tipo de mensaje 
 				System.out.println("Tipo de mensaje : " + msgRcv.get_TOM());
-				System.out.println("Tipo medida : " + msgRcv.get_datos()[0]);
+		
+				// Tipo de medida solicitada		
+				switch(msgRcv.get_datos()[0]){
+					case 1:
+						System.out.println("Tipo medida : Temperatura");
+					break;
+				}
+				
+				// Medida
 				System.out.println("medida : " + msgRcv.get_datos()[1]);
+				// Temperatura
 				System.out.println("Temperatura : " + (D1_TEMP + msgRcv.get_datos()[1]*D2_TEMP));
+				// Distancia
 				System.out.println("distancia : " + msgRcv.get_datos()[2]);
+				
 			break;
 		}
-		
-		if(DestinationNode == 0x7 && msgRcv.get_TOM() == HELLO_TYPE){
-//				System.out.println("Se ha recibido un mensaje del tipo \"Hello\" con ID Origen " + message.getSeialPacket().get_header_src());
 			
-			
-		}
-		
 	}
   
 	/**
