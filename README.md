@@ -17,6 +17,13 @@ Este programa se compila con catkin.
 
 Ejecución:  rosrun cmd_vel_publisher cmd_vel_publisher_node
 
+# SerialRadioComunication
+Comunicación radio y serie con nodos telosB. 
+
+Cargar el maestro(desde la carpeta maestro): make telosb install,[id_nodo]
+Cargar el esclavo(desde la carpeta slave): make telosb install,[id_nodo]
+Ejecutar el maestro: (script run.sh)
+
 # serial_to_topic
 Programa que lee del puerto serie y escribe en el topic "/temp_monitor". Es un proyecto que funciona en rosjava.
 
