@@ -1,7 +1,6 @@
 #include "EsclavoApp.h"
 
-configuration EsclavoAppC {
-}
+configuration EsclavoAppC {}
 
 implementation {
 
@@ -27,9 +26,16 @@ implementation {
   	components new HamamatsuS10871TsrC() as PhotoActiveC;
   	components new HamamatsuS1087ParC() as TotalSolarC;
 
+	// Componente para Timer
 	components new TimerMilliC() as Timer0; 
+	
+	// Componente para el botón de usuario
+	components UserButtonC;
   
 	// Conexiones
+	App.Get -> UserButtonC;
+	App.Notify -> UserButtonC;
+	
 	App -> CC2420ActiveMessageC.CC2420Packet;
 
 	App.Boot -> MainC;

@@ -17,7 +17,8 @@ enum {
   HANDSHAKE_TYPE = 4,						// Establecimiento de parámetros
   REQUEST_TYPE = 5,							// Petición
   RESPONSE_TYPE = 6,						// Respuesta
-  TRIGGER_TYPE = 7,
+  TRIGGER_TYPE = 7,							// Disparo
+  REJECT_TYPE = 8,							// Rechazo
   
   TIMER_PERIOD_SYNC = 1000      			// Periodo de Timer (por defecto 250)
 };
