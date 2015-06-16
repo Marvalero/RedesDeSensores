@@ -106,19 +106,22 @@ implementation {
 	S = val;
   }
 
-	void getMeasureMean(uint16_t tipoMedidaSolicitada){
+	void getMeasure(uint16_t tipoMedidaSolicitada){
 	
-		if(tipoMedidaSolicitada == 0){	// Humedad
-			call Humidity.read();				
-			medida = H;
-		}else if(tipoMedidaSolicitada == 1){	// Temperatura
-			call Temperature.read();
-			medida = T;
-		}else if(tipoMedidaSolicitada == 2){	// Luminosidad
-			call ReadVisible.read();
-			medida = S;
+		switch(tipoMedidaSolicitada){
+			case 0:	// Humedad
+				call Humidity.read();				
+				medida = H;
+			break;
+			case 1:	// Temperatura
+				call Temperature.read();
+				medida = T;
+			break;
+			case 2:	// Luminosidad
+				call ReadVisible.read();
+				medida = S;
+			break;
 		}
-		
 	}
 
   // Función que obtiene el RSSI
@@ -345,7 +348,7 @@ implementation {
 							WAIT_STATE = TRUE;
 							READY_STATE = FALSE;
 							tipoMedida = infomsg->datos[0];
-							getMeasureMean(tipoMedida);
+							getMeasure(tipoMedida);
 							measureRssi = getRssi(msg);
 							call Timer0.startPeriodic(intervalo_TDMA);	
 						}

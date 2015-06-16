@@ -9,7 +9,7 @@ enum {
 	
   AM_ESCLAVOAPP = 2, 
 
-  AM_INFOMSG = 2,
+  AM_INFOMSG = 2,							
   
   SYNC_TYPE = 1,							// Sincronización
   ACK_TYPE = 2,								// Asentimiento
@@ -35,9 +35,6 @@ typedef nx_struct InfoMsg {
 	nx_uint16_t		TOM;					// Tipo de mensaje
 	nx_uint16_t		TTL;					// Tiempo de vida del mensaje (evita bucles)
 	nx_uint16_t		datos[10];				// Array de datos
-	
 } InfoMsg;
-
-
 
 #endif        
