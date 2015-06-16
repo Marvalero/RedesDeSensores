@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>com.github.rosjava.serial_to_topic</groupId>
+  <artifactId>temp_publisher</artifactId>
+  <version>0.1.0</version>
+  <versioning>
+    <versions>
+      <version>0.1.0</version>
+    </versions>
+    <lastUpdated>20150616091642</lastUpdated>
+  </versioning>
+</metadata>
