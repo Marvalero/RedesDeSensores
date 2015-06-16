@@ -6,12 +6,12 @@ Trabajo realizado para la asignatura Redes de Sensores para el Sistema Operativo
 
 # cmd_vel_publisher
 Programa usado para mover al robot de forma manual. Recibe por teclado un comando y en función de este escribe una orden en el topic /RosAria/cmd_vel. Opciones:
-       - a: gira a la izquierda
-       - d: gira a la derecha
-       - s: se para
-       - w: va para adelante
-       - r : va marcha atrás
-       - q: cierra la aplicación
+ - a: gira a la izquierda
+ - d: gira a la derecha
+ - s: se para
+ - w: va para adelante
+ - r : va marcha atrás
+ - q: cierra la aplicación
 
 Este programa se compila con catkin.
 
