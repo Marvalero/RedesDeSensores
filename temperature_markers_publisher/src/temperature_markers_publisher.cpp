@@ -5,7 +5,7 @@
 #include "std_msgs/Int16.h"
 #include <math.h>
 #include <string.h>
-// %EndTag(INCLUDES)%
+
 
 double globalx=0;
 double globaly=0;
@@ -81,7 +81,7 @@ void tempCallBack(const std_msgs::Int16::ConstPtr& msg){
     else {
         marker.color.r = 1;
         marker.color.g = 1;
-        marker.color.b = 0);
+        marker.color.b = 0;
         marker.color.a = 1.0;
     }
 
