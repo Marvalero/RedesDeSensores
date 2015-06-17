@@ -66,13 +66,13 @@ void tempCallBack(const std_msgs::Int16::ConstPtr& msg){
     marker.scale.y = 1;
     marker.scale.z = 1;
 
-    if (temperature > (1.001*temperatureRef)){
+    if (temperature > (1.01*temperatureRef)){
         marker.color.r = (temperatureRef/temperature);
         marker.color.g = (1-(temperatureRef/temperature));
         marker.color.b = 0;
         marker.color.a = 1.0;
     }
-    else if (temperature < (0.999*temperatureRef)){
+    else if (temperature < (0.99*temperatureRef)){
         marker.color.r = 0;
         marker.color.g = ((temperature/temperatureRef)-0.2);
         marker.color.b = (temperature/temperatureRef);
