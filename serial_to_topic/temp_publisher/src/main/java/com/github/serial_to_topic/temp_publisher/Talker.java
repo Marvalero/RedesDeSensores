@@ -34,7 +34,7 @@ public class Talker extends AbstractNodeMain {
   private ServerSocket ss;
   private Socket so;
   private DataOutputStream salida;
-  private BufferedReader entrada;
+  private DataInputStream entrada;
   private String mensajeRecibido;
 
   final int PUERTO = 5000;
@@ -67,7 +67,7 @@ public class Talker extends AbstractNodeMain {
           so = ss.accept();
           System.out.println("Se ha conectado un cliente");
 
-          entrada = new BufferedReader(new InputStreamReader(so.getInputStream()));
+          entrada = new DataInputStream(so.getInputStream());
           salida = new DataOutputStream(so.getOutputStream());
 
         }catch(Exception e){
@@ -77,17 +77,19 @@ public class Talker extends AbstractNodeMain {
 
       @Override
       protected void loop() throws InterruptedException {
+        short dato = 0;
+
         try{
-          mensajeRecibido = entrada.readLine();
+          dato = entrada.readShort();
         }catch(Exception e){
           System.out.println("Error al recibir el mensaje");
         }
-        System.out.println("Mensaje recibido : " + mensajeRecibido);
+        System.out.println("Mensaje recibido : " + dato);
         std_msgs.Int16 temp = publisher.newMessage();
-	temp.setData(sequenceNumber);
+	       temp.setData(dato);
         publisher.publish(temp);
-        sequenceNumber++;
-        Thread.sleep(5000);
+        //sequenceNumber++;
+        //Thread.sleep(5000);
       }
     });
   }

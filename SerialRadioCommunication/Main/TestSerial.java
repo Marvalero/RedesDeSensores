@@ -444,6 +444,7 @@ public class TestSerial implements MessageListener{
 				System.out.println("Temperatura : " + (D1_TEMP + msgRcv.get_datos()[1]*D2_TEMP));
 				// Distancia
 				System.out.println("distancia : " + msgRcv.get_datos()[2]);
+
 				try{
 					salida.writeShort((short)msgRcv.get_datos()[1]);
 				}catch(Exception e){
