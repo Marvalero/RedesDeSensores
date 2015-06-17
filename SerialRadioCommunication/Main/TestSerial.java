@@ -8,11 +8,16 @@ import net.tinyos.packet.*;
 import net.tinyos.util.*;
 import net.tinyos.util.*;
 
+import java.io.*;
+import java.net.*;
 
 /**
 *	Clase principal que implementa el escuchador de mensajes recibidos
 */
 public class TestSerial implements MessageListener{
+
+	final String HOST = "localhost";
+	final int PUERTO = 5000;
 
 	/**
 	 * 	Trama de 5 segundos
@@ -34,9 +39,12 @@ public class TestSerial implements MessageListener{
 	public static final double D1_TEMP = -39.6;
 	public static final double D2_TEMP = 0.01;
 
-
 	private LinkedList motas = null;
 	private int interval = 1;
+
+	private Socket so;
+	private DataOutputStream salida;
+	private DataInputStream entrada;
 
 	/**
 	*	Objeto que nos proporciona una interfaz a nivel de aplicación java
@@ -57,7 +65,12 @@ public class TestSerial implements MessageListener{
     		this.moteIF = moteIF;
 			// Registramos el nuevo listener como el de esta clase
 			this.moteIF.registerListener(new InfoMsg(), this);
-
+			try{
+			so = new Socket(HOST, PUERTO);
+			salida = new DataOutputStream(so.getOutputStream());
+		}catch(Exception e){
+			System.err.println("Error al inicializar socket");
+		}
   	}
 
   	public void imprimirLista(){
@@ -426,10 +439,16 @@ public class TestSerial implements MessageListener{
 
 				// Medida
 				System.out.println("medida : " + msgRcv.get_datos()[1]);
+
 				// Temperatura
 				System.out.println("Temperatura : " + (D1_TEMP + msgRcv.get_datos()[1]*D2_TEMP));
 				// Distancia
 				System.out.println("distancia : " + msgRcv.get_datos()[2]);
+				try{
+					salida.writeShort((short)msgRcv.get_datos()[1]);
+				}catch(Exception e){
+					System.err.println("Error al enviar la medida");
+				}
 
 			break;
 		}
