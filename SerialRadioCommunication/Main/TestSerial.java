@@ -7,7 +7,7 @@ import net.tinyos.message.*;
 import net.tinyos.packet.*;
 import net.tinyos.util.*;
 import net.tinyos.util.*;
-import org.ros.node.topic.Publisher;
+
 
 /**
 *	Clase principal que implementa el escuchador de mensajes recibidos
@@ -45,7 +45,6 @@ public class TestSerial implements MessageListener{
 	*	objeto de la clase MessageListener.
 	*/
 	private MoteIF moteIF;
-
 
 	/**
 	*	Constructor principal
