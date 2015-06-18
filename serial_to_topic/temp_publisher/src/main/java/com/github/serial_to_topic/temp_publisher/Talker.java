@@ -84,10 +84,13 @@ public class Talker extends AbstractNodeMain {
         }catch(Exception e){
           System.out.println("Error al recibir el mensaje");
         }
+
         System.out.println("Mensaje recibido : " + dato);
-        std_msgs.Int16 temp = publisher.newMessage();
-	       temp.setData(dato);
-        publisher.publish(temp);
+	if(dato > 0){
+	        std_msgs.Int16 temp = publisher.newMessage();
+	         temp.setData(dato);
+        	publisher.publish(temp);
+	}
         //sequenceNumber++;
         //Thread.sleep(5000);
       }
