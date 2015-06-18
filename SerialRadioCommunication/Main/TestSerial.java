@@ -445,8 +445,10 @@ public class TestSerial implements MessageListener{
 				// Distancia
 				System.out.println("distancia : " + msgRcv.get_datos()[2]);
 
-				try{
-					salida.writeShort((short)msgRcv.get_datos()[1]);
+				try{	if(msgRcv.get_datos()[1] > 0)
+						salida.writeShort((short)msgRcv.get_datos()[1]);
+					else
+						System.out.println("Medida no válida");
 				}catch(Exception e){
 					System.err.println("Error al enviar la medida");
 				}

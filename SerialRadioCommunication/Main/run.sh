@@ -13,11 +13,11 @@
 #make telosb
 
 # Comando utilizado para ejecutar el programa java
-#java TestSerial -comm serial@`ls /dev/ttyUSB*`:115200 ;
+java TestSerial -comm serial@`ls /dev/ttyUSB*`:115200 ;
 #######################################################
 
 # (Des)comenta la siguiente línea para la ejecución del programa
-java -cp tinyos.jar: TestSerial -comm serial@`ls /dev/ttyUSB*`:115200;
+#java -cp tinyos.jar: TestSerial -comm serial@`ls /dev/ttyUSB*`:115200;
 
 
 
