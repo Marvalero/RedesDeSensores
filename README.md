@@ -4,6 +4,8 @@ Trabajo realizado para la asignatura Redes de Sensores para el Sistema Operativo
  - serial_to_topic
  - temperature_markers_publisher
 
+En la carpeta scripts vienen los comandos a ejecutar para instalar ROS y los paquetes necesarios y para ejecutarlos.
+
 # cmd_vel_publisher
 Programa usado para mover al robot de forma manual. Recibe por teclado un comando y en función de este escribe una orden en el topic /RosAria/cmd_vel. Opciones:
  - a: gira a la izquierda
